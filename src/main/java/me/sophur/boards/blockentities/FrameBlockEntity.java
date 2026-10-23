@@ -7,6 +7,6 @@ import net.minecraft.world.level.block.state.BlockState;
 
 public class FrameBlockEntity extends BlockEntity {
     public FrameBlockEntity(BlockPos worldPosition, BlockState blockState) {
-        super(BlockEntityTypes.frameBlock.entry(), worldPosition, blockState);
+        super(BlockEntityTypes.frameBlock.type(), worldPosition, blockState);
     }
 }

@@ -1,6 +1,5 @@
 package me.sophur.boards;
 
-import me.sophur.boards.blocks.FrameBlock;
 import net.fabricmc.fabric.api.object.builder.v1.block.entity.FabricBlockEntityTypeBuilder;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -13,52 +12,68 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
+import org.jspecify.annotations.Nullable;
 
 import java.util.Collection;
-import java.util.List;
+import java.util.Objects;
 import java.util.function.Function;
 
 public class RegistryUtil {
     private RegistryUtil() {
     }
 
-    public record Registered<T, U extends T>(U entry, ResourceKey<T> key) {
+    public record IDBlockEntityType<T extends BlockEntity>
+            (BlockEntityType<T> type, ResourceKey<BlockEntityType<?>> key) {
     }
 
-    public static <T extends Block> Registered<Block, T> registerBlock(String id, Function<BlockBehaviour.Properties, T> factory, BlockBehaviour.Properties properties) {
+    public static boolean resourceKeyEquals(ResourceKey<?> a, ResourceKey<?> b) {
+        if (a == b) return true;
+        if (a == null || b == null) return false;
+        return Objects.equals(a.registry(), b.registry()) && Objects.equals(a.identifier(), b.identifier());
+    }
+
+    public static <T extends Block> T registerBlock(String id, Function<BlockBehaviour.Properties, T> factory, BlockBehaviour.Properties properties) {
         return registerBlock(BoardsMain.identifier(id), factory, properties);
     }
 
-    public static <T extends Item> Registered<Item, T> registerItem(String id, Function<Item.Properties, T> factory, Item.Properties properties) {
+    public static <T extends Item> T registerItem(String id, Function<Item.Properties, T> factory, Item.Properties properties) {
         return registerItem(BoardsMain.identifier(id), factory, properties);
     }
 
-    public static <T extends BlockEntity> Registered<BlockEntityType<?>, BlockEntityType<T>> registerBlockEntityType(String id, FabricBlockEntityTypeBuilder.Factory<? extends T> factory, Collection<Block> blocks) {
+    public static <T extends BlockEntity> IDBlockEntityType<T> registerBlockEntityType(String id, FabricBlockEntityTypeBuilder.Factory<? extends T> factory, Collection<Block> blocks) {
         return registerBlockEntityType(BoardsMain.identifier(id), factory, blocks);
     }
 
-    public static <T extends Block> Registered<Block, T> registerBlock(Identifier id, Function<BlockBehaviour.Properties, T> factory, BlockBehaviour.Properties properties) {
-        ResourceKey<Block> key = ResourceKey.create(Registries.BLOCK, id);
-        T block = factory.apply(properties.setId(key));
-        Registry.register(BuiltInRegistries.BLOCK, key, block);
-        return new Registered<>(block, key);
+    public static <T extends Block> T registerBlock(Identifier id, Function<BlockBehaviour.Properties, T> factory, BlockBehaviour.Properties blockProperties) {
+        ResourceKey<Block> key = ResourceKey.create(Registries.BLOCK, Objects.requireNonNull(id));
+        T block = factory.apply(blockProperties.setId(key));
+        assert resourceKeyEquals(key, getBlockResourceKey(block));
+        return Registry.register(BuiltInRegistries.BLOCK, key, block);
     }
 
-    public static <T extends Item> Registered<Item, T> registerItem(Identifier id, Function<Item.Properties, T> factory, Item.Properties properties) {
-        ResourceKey<Item> key = ResourceKey.create(Registries.ITEM, id);
-        T item = factory.apply(properties.setId(key));
-        Registry.register(BuiltInRegistries.ITEM, key, item);
-        return new Registered<>(item, key);
+    public static <T extends Item> T registerItem(Identifier id, Function<Item.Properties, T> factory, Item.Properties itemProperties) {
+        ResourceKey<Item> key = ResourceKey.create(Registries.ITEM, Objects.requireNonNull(id));
+        T item = factory.apply(itemProperties.setId(key));
+        return Registry.register(BuiltInRegistries.ITEM, key, item);
     }
 
-    public static <T extends Block> Registered<Item, BlockItem> registerBlockItem(Registered<Block, T> block, Item.Properties properties) {
-        return registerItem(block.key.identifier(), prop -> new BlockItem(block.entry, prop.useBlockDescriptionPrefix()), properties);
+    public static <T extends Block> BlockItem registerBlockItem(T block, Item.Properties itemProperties) {
+        return registerItem(getBlockID(block), prop -> new BlockItem(block, prop.useBlockDescriptionPrefix()), itemProperties);
     }
 
-    public static <T extends BlockEntity> Registered<BlockEntityType<?>, BlockEntityType<T>> registerBlockEntityType(Identifier id, FabricBlockEntityTypeBuilder.Factory<? extends T> factory, Collection<Block> blocks) {
-        ResourceKey<BlockEntityType<?>> key = ResourceKey.create(Registries.BLOCK_ENTITY_TYPE, id);
+    public static <T extends BlockEntity> IDBlockEntityType<T> registerBlockEntityType(Identifier id, FabricBlockEntityTypeBuilder.Factory<? extends T> factory, Collection<Block> blocks) {
+        ResourceKey<BlockEntityType<?>> key = ResourceKey.create(Registries.BLOCK_ENTITY_TYPE, Objects.requireNonNull(id));
         BlockEntityType<T> blockEntityType = Registry.register(BuiltInRegistries.BLOCK_ENTITY_TYPE, key,
                 FabricBlockEntityTypeBuilder.<T>create(factory).addBlocks(blocks).build());
-        return new Registered<>(blockEntityType, key);
+        return new IDBlockEntityType<>(blockEntityType, key);
+    }
+
+    public static @Nullable ResourceKey<Block> getBlockResourceKey(Block block) {
+        return block.properties().blockId();
+    }
+
+    public static @Nullable Identifier getBlockID(Block block) {
+        ResourceKey<Block> key = getBlockResourceKey(block);
+        return key != null ? key.identifier() : null;
     }
 }

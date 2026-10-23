@@ -11,6 +11,6 @@ public class Blocks {
     public static void initialize() {
     }
 
-    public static RegistryUtil.Registered<Block, FrameBlock> frameBlock = RegistryUtil.registerBlock("frame", FrameBlock::new, BlockBehaviour.Properties.of());
+    public static FrameBlock frameBlock = RegistryUtil.registerBlock("frame", FrameBlock::new, BlockBehaviour.Properties.of());
 }
 
