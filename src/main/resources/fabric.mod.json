@@ -11,23 +11,23 @@
     "sources": "https://github.com/${repo_github}"
   },
   "license": "MPL-2.0",
-  "icon": "assets/modtemplate/icon.png",
+  "icon": "assets/boards/icon.png",
   "environment": "*",
-  "accessWidener": "modtemplate.classtweaker",
+  "accessWidener": "boards.classtweaker",
   "entrypoints": {
     "main": [
-      "me.sophur.modtemplate.ModTemplateMain"
+      "me.sophur.boards.BoardsMain"
     ],
     "client": [
-      "me.sophur.modtemplate.client.ModTemplateClient"
+      "me.sophur.boards.client.BoardsClient"
     ]
   },
   "mixins": [
     {
       "environment": "client",
-      "config": "modtemplate.client.mixins.json"
+      "config": "boards.client.mixins.json"
     },
-    "modtemplate.mixins.json"
+    "boards.mixins.json"
   ],
   "depends": {
     "fabricloader": ">=${fabric_loader_version}",

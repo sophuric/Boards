@@ -1,4 +1,4 @@
-package me.sophur.modtemplate;
+package me.sophur.boards;
 
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.loader.api.FabricLoader;
@@ -8,13 +8,16 @@ import org.slf4j.LoggerFactory;
 
 import java.nio.file.Path;
 
-public final class ModTemplateMain implements ModInitializer {
-    public static final String MOD_ID = "ModTemplate";
-    public static final String MOD_ID_LOWER = "modtemplate";
+public final class BoardsMain implements ModInitializer {
+    public static final String MOD_ID = "Boards";
+    public static final String MOD_ID_LOWER = "boards";
     public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
 
     @Override
     public void onInitialize() {
+        Blocks.initialize();
+        Items.initialize();
+        BlockEntityTypes.initialize();
     }
 
     public static Identifier identifier(String name) {

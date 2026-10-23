@@ -1,9 +1,9 @@
 {
   "required": true,
   "minVersion": "0.8",
-  "package": "me.sophur.modtemplate.client.mixin",
+  "package": "me.sophur.boards.mixin",
   "compatibilityLevel": "JAVA_25",
-  "client": [
+  "mixins": [
   ],
   "injectors": {
     "defaultRequire": 1
