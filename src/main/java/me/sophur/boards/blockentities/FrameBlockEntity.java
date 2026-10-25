@@ -21,7 +21,7 @@ import org.jspecify.annotations.Nullable;
 
 public class FrameBlockEntity extends BlockEntity {
     public FrameBlockEntity(BlockPos worldPosition, BlockState blockState) {
-        super(BlockEntityTypes.frameBlock.type(), worldPosition, blockState);
+        super(BlockEntityTypes.FRAME_BLOCK_ENTITY.type(), worldPosition, blockState);
         this.items = NonNullList.withSize(itemCount, ItemStack.EMPTY);
     }
 

@@ -11,9 +11,9 @@ public class Items {
 
     public static void initialize() {
         CreativeModeTabEvents.modifyOutputEvent(CreativeModeTabs.REDSTONE_BLOCKS).register(tab -> {
-            tab.accept(frameBlock);
+            tab.accept(FRAME_BLOCK);
         });
     }
 
-    public static BlockItem frameBlock = RegistryUtil.registerBlockItem(Blocks.frameBlock, new Item.Properties());
+    public final static BlockItem FRAME_BLOCK = RegistryUtil.registerBlockItem(Blocks.FRAME_BLOCK, new Item.Properties());
 }

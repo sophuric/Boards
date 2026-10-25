@@ -16,7 +16,7 @@ public class BlockEntityTypes {
     public static void initialize() {
     }
 
-    public static RegistryUtil.IDBlockEntityType<? extends FrameBlockEntity> frameBlock =
-            RegistryUtil.registerBlockEntityType("frame", FrameBlockEntity::new, List.of(Blocks.frameBlock));
+    public final static RegistryUtil.IDBlockEntityType<? extends FrameBlockEntity> FRAME_BLOCK_ENTITY =
+            RegistryUtil.registerBlockEntityType("frame", FrameBlockEntity::new, List.of(Blocks.FRAME_BLOCK));
 }
 
