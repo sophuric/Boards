@@ -3,6 +3,8 @@ package me.sophur.boards;
 import com.mojang.datafixers.util.Pair;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.world.entity.item.ItemEntity;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.ScheduledTickAccess;
@@ -14,6 +16,7 @@ import net.minecraft.world.level.material.Fluids;
 import net.minecraft.world.phys.Vec3;
 import org.jspecify.annotations.NonNull;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
@@ -83,5 +86,36 @@ public class Util {
     public static void updateShapeWaterlogged(@NonNull BlockState state, @NonNull LevelReader level, @NonNull ScheduledTickAccess ticks, @NonNull BlockPos pos) {
         if (!state.getValue(WATERLOGGED)) return;
         ticks.scheduleTick(pos, Fluids.WATER, Fluids.WATER.getTickDelay(level));
+    }
+
+    public static boolean mergeItemStack(ItemStack stack1, ItemStack stack2) {
+        if (stack1.isEmpty() || stack2.isEmpty()) return false;
+        if (!stack1.isStackable()) return false;
+        if (!ItemStack.isSameItemSameComponents(stack1, stack2)) return false;
+
+        int stack1Count = stack1.getCount(),
+                maxCount = stack1.getMaxStackSize();
+        if (stack1Count >= maxCount) return false;
+
+        int combinedCount = stack1Count + stack2.getCount();
+        stack1.setCount(Math.min(maxCount, combinedCount));
+        stack2.setCount(Math.max(0, combinedCount - maxCount));
+        return true;
+    }
+
+    public static List<ItemStack> stackItems(Stream<ItemStack> stacks) {
+        List<ItemStack> result = new ArrayList<>();
+        stacks.forEach(stack -> {
+            if (stack.isEmpty()) return;
+
+            if (stack.isStackable())
+                for (ItemStack existing : result) {
+                    mergeItemStack(existing, stack);
+                }
+
+            if (!stack.isEmpty())
+                result.add(stack);
+        });
+        return result;
     }
 }

@@ -1,3 +1,5 @@
+generated/.cache/
+
 # gradle
 
 .gradle/

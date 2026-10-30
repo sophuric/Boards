@@ -31,6 +31,12 @@ loom {
     accessWidenerPath = file("src/main/resources/$modID.classtweaker")
 }
 
+fabricApi {
+    configureDataGeneration() {
+        client = false
+    }
+}
+
 repositories {
     mavenCentral()
 

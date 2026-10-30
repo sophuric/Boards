@@ -2,10 +2,12 @@ package me.sophur.boards.blocks;
 
 import com.mojang.math.OctahedralGroup;
 import com.mojang.serialization.MapCodec;
+import me.sophur.boards.BoardsMain;
 import me.sophur.boards.Util;
 import me.sophur.boards.blockentities.FrameBlockEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -23,6 +25,8 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.material.FluidState;
+import net.minecraft.world.level.storage.loot.LootParams;
+import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.CollisionContext;
@@ -169,4 +173,17 @@ public class FrameBlock extends BaseEntityBlock implements SimpleWaterloggedBloc
     protected boolean useShapeForLightOcclusion(@NonNull BlockState state) {
         return true;
     }
+
+    @Override
+    protected @NonNull List<ItemStack> getDrops(@NonNull BlockState state, LootParams.@NonNull Builder params) {
+        var drops = super.getDrops(state, params);
+
+        if (params.getOptionalParameter(LootContextParams.BLOCK_ENTITY)
+                instanceof FrameBlockEntity blockEntity) {
+            drops.addAll(Util.stackItems(blockEntity.streamItems()));
+        }
+
+        return drops;
+    }
+
 }

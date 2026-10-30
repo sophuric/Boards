@@ -26,6 +26,7 @@ import org.jspecify.annotations.Nullable;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Consumer;
+import java.util.stream.Stream;
 
 public class FrameBlockEntity extends BlockEntity {
     public FrameBlockEntity(BlockPos worldPosition, BlockState blockState) {
@@ -112,5 +113,9 @@ public class FrameBlockEntity extends BlockEntity {
 
     public List<ItemStack> getItems() {
         return Collections.unmodifiableList(items);
+    }
+
+    public Stream<ItemStack> streamItems() {
+        return items.stream();
     }
 }

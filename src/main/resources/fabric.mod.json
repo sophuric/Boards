@@ -20,6 +20,9 @@
     ],
     "client": [
       "me.sophur.boards.client.BoardsClient"
+    ],
+    "fabric-datagen": [
+      "me.sophur.boards.datagen.BoardsDataGenerator"
     ]
   },
   "mixins": [
