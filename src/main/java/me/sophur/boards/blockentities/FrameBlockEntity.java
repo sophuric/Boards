@@ -1,6 +1,7 @@
 package me.sophur.boards.blockentities;
 
 import me.sophur.boards.BlockEntityTypes;
+import me.sophur.boards.Util;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
@@ -74,9 +75,13 @@ public class FrameBlockEntity extends BlockEntity {
         super.setChanged();
         if (level == null) return;
 
-        BlockState state = getBlockState();
-        level.sendBlockUpdated(worldPosition, state, state, Block.UPDATE_ALL);
-        level.updateNeighborsAt(worldPosition, getBlockState().getBlock());
+        // set new block state
+        BlockState newState = getBlockState();
+        for (Direction dir : Direction.values()) {
+            newState = newState.setValue(Util.getDirectionalProperty(dir), hasFaceItem(dir));
+        }
+
+        level.setBlockAndUpdate(worldPosition, newState);
     }
 
     public boolean hasFaceItem(Direction face) {
