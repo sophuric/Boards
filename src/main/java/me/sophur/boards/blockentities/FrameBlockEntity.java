@@ -2,6 +2,7 @@ package me.sophur.boards.blockentities;
 
 import me.sophur.boards.BlockEntityTypes;
 import me.sophur.boards.Util;
+import me.sophur.boards.blocks.FrameBlock;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
@@ -11,6 +12,8 @@ import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.world.ContainerHelper;
+import net.minecraft.world.item.BlockItem;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -19,6 +22,10 @@ import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
+
+import java.util.Collections;
+import java.util.List;
+import java.util.function.Consumer;
 
 public class FrameBlockEntity extends BlockEntity {
     public FrameBlockEntity(BlockPos worldPosition, BlockState blockState) {
@@ -29,8 +36,12 @@ public class FrameBlockEntity extends BlockEntity {
     private NonNullList<ItemStack> items;
     private static final int itemCount = Direction.values().length;
 
-    public boolean canSetFaceItem(ItemStack item) {
-        if (item == null || item.isEmpty()) return true;
+    public boolean canSetFaceItem(ItemStack itemStack) {
+        if (itemStack == null || itemStack.isEmpty()) return true;
+        Item item = itemStack.getItem();
+        if (!(item instanceof BlockItem blockItem)) return false;
+        Block block = blockItem.getBlock();
+
         //return state.isCollisionShapeFullBlock();
         return true;
     }
@@ -70,21 +81,36 @@ public class FrameBlockEntity extends BlockEntity {
         return ClientboundBlockEntityDataPacket.create(this);
     }
 
+    public void updateBlockState() {
+        if (level == null) return;
+
+        BlockState state = getBlockState();
+        if (!(state.getBlock() instanceof FrameBlock block)) return;
+
+        // set new block state
+        for (Direction dir : Direction.values()) {
+            state = state.setValue(Util.getDirectionalProperty(dir), hasFaceItem(dir));
+        }
+
+        state = block.updateShape(state, level, level, worldPosition);
+        level.setBlockAndUpdate(worldPosition, state);
+    }
+
     @Override
     public void setChanged() {
         super.setChanged();
-        if (level == null) return;
-
-        // set new block state
-        BlockState newState = getBlockState();
-        for (Direction dir : Direction.values()) {
-            newState = newState.setValue(Util.getDirectionalProperty(dir), hasFaceItem(dir));
-        }
-
-        level.setBlockAndUpdate(worldPosition, newState);
+        updateBlockState();
     }
 
     public boolean hasFaceItem(Direction face) {
         return !getFaceItem(face).isEmpty();
+    }
+
+    public void loopItems(Consumer<ItemStack> consumer) {
+        items.forEach(consumer);
+    }
+
+    public List<ItemStack> getItems() {
+        return Collections.unmodifiableList(items);
     }
 }

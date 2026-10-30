@@ -3,20 +3,24 @@ package me.sophur.boards;
 import com.mojang.datafixers.util.Pair;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.level.Level;
+import net.minecraft.world.item.context.BlockPlaceContext;
+import net.minecraft.world.level.LevelReader;
+import net.minecraft.world.level.ScheduledTickAccess;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
-import net.minecraft.world.phys.BlockHitResult;
-import net.minecraft.world.phys.HitResult;
+import net.minecraft.world.level.material.FluidState;
+import net.minecraft.world.level.material.Fluids;
 import net.minecraft.world.phys.Vec3;
-import org.jspecify.annotations.Nullable;
+import org.jspecify.annotations.NonNull;
 
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
+import java.util.function.Function;
 import java.util.stream.Stream;
+
+import static net.minecraft.world.level.block.state.properties.BlockStateProperties.WATERLOGGED;
 
 public class Util {
     private Util() {
@@ -65,5 +69,19 @@ public class Util {
 
     public static <T, U> List<U> getSecond(Collection<Pair<T, U>> list) {
         return list.stream().map(Pair::getSecond).toList();
+    }
+
+    public static BlockState getWaterloggedStateForPlacement(BlockState state, @NonNull BlockPlaceContext context) {
+        return state.setValue(WATERLOGGED,
+                context.getLevel().getFluidState(context.getClickedPos()).is(Fluids.WATER));
+    }
+
+    public static @NonNull FluidState getWaterloggedFluidState(BlockState state, Function<BlockState, FluidState> superFunc) {
+        return state.getValue(WATERLOGGED) ? Fluids.WATER.getSource(false) : superFunc.apply(state);
+    }
+
+    public static void updateShapeWaterlogged(@NonNull BlockState state, @NonNull LevelReader level, @NonNull ScheduledTickAccess ticks, @NonNull BlockPos pos) {
+        if (!state.getValue(WATERLOGGED)) return;
+        ticks.scheduleTick(pos, Fluids.WATER, Fluids.WATER.getTickDelay(level));
     }
 }
