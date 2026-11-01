@@ -111,11 +111,6 @@ public class FrameBlock extends BaseEntityBlock implements SimpleWaterloggedBloc
     }
 
     @Override
-    protected @NonNull MapCodec<? extends BaseEntityBlock> codec() {
-        return simpleCodec(FrameBlock::new);
-    }
-
-    @Override
     public @Nullable BlockEntity newBlockEntity(@NonNull BlockPos worldPosition, @NonNull BlockState blockState) {
         return new FrameBlockEntity(worldPosition, blockState);
     }
