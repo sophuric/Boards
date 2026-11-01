@@ -88,10 +88,10 @@ public class FrameBlock extends BaseEntityBlock implements SimpleWaterloggedBloc
     static {
         // 3D cross shape
         VoxelShape barX = Shapes.box(
-                0, 0.5 - BASE_RADIUS, 0.5 - BASE_RADIUS,
-                1, 0.5 + BASE_RADIUS, 0.5 + BASE_RADIUS),
-                barY = Shapes.rotate(barX, OctahedralGroup.ROT_90_Z_POS),
-                barZ = Shapes.rotate(barX, OctahedralGroup.ROT_90_Y_POS);
+            0, 0.5 - BASE_RADIUS, 0.5 - BASE_RADIUS,
+            1, 0.5 + BASE_RADIUS, 0.5 + BASE_RADIUS),
+            barY = Shapes.rotate(barX, OctahedralGroup.ROT_90_Z_POS),
+            barZ = Shapes.rotate(barX, OctahedralGroup.ROT_90_Y_POS);
         BASE_SHAPE = Shapes.or(barX, barY, barZ);
 
         // each face
@@ -125,7 +125,7 @@ public class FrameBlock extends BaseEntityBlock implements SimpleWaterloggedBloc
         if (itemStack.isEmpty()) return InteractionResult.TRY_WITH_EMPTY_HAND;
 
         if (level.getBlockEntity(pos) instanceof FrameBlockEntity be
-                && be.canSetFaceItem(itemStack)) {
+            && be.canSetFaceItem(itemStack)) {
             var info = getHitResultInfo(pos, hitResult);
 
             // detect only right-clicking on the base cross shape
@@ -174,7 +174,7 @@ public class FrameBlock extends BaseEntityBlock implements SimpleWaterloggedBloc
         var drops = super.getDrops(state, params);
 
         if (params.getOptionalParameter(LootContextParams.BLOCK_ENTITY)
-                instanceof FrameBlockEntity blockEntity) {
+            instanceof FrameBlockEntity blockEntity) {
             drops.addAll(Util.stackItems(blockEntity.streamItems()));
         }
 

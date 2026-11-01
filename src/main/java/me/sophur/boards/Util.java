@@ -61,7 +61,7 @@ public class Util {
         var absPairs = pairs.map(x -> x.mapSecond(Math::abs));
         var sorted = absPairs.sorted(Comparator.comparing(Pair::getSecond));
         var major = sorted.map(x -> x.mapFirst(axis ->
-                Direction.fromAxisAndDirection(axis, getAxisDirection(position.get(axis)))));
+            Direction.fromAxisAndDirection(axis, getAxisDirection(position.get(axis)))));
         var output = major.map(e -> new DirectionsResult(e.getFirst(), e.getSecond()));
         return output.toList().reversed();
     }
@@ -76,7 +76,7 @@ public class Util {
 
     public static BlockState getWaterloggedStateForPlacement(BlockState state, @NonNull BlockPlaceContext context) {
         return state.setValue(WATERLOGGED,
-                context.getLevel().getFluidState(context.getClickedPos()).is(Fluids.WATER));
+            context.getLevel().getFluidState(context.getClickedPos()).is(Fluids.WATER));
     }
 
     public static @NonNull FluidState getWaterloggedFluidState(BlockState state, Function<BlockState, FluidState> superFunc) {
@@ -94,7 +94,7 @@ public class Util {
         if (!ItemStack.isSameItemSameComponents(stack1, stack2)) return false;
 
         int stack1Count = stack1.getCount(),
-                maxCount = stack1.getMaxStackSize();
+            maxCount = stack1.getMaxStackSize();
         if (stack1Count >= maxCount) return false;
 
         int combinedCount = stack1Count + stack2.getCount();

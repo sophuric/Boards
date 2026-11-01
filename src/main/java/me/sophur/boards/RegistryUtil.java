@@ -23,7 +23,7 @@ public class RegistryUtil {
     }
 
     public record IDBlockEntityType<T extends BlockEntity>
-            (BlockEntityType<T> type, ResourceKey<BlockEntityType<?>> key) {
+        (BlockEntityType<T> type, ResourceKey<BlockEntityType<?>> key) {
     }
 
     public static boolean resourceKeyEquals(ResourceKey<?> a, ResourceKey<?> b) {
@@ -64,7 +64,7 @@ public class RegistryUtil {
     public static <T extends BlockEntity> IDBlockEntityType<T> registerBlockEntityType(Identifier id, FabricBlockEntityTypeBuilder.Factory<? extends T> factory, Collection<Block> blocks) {
         ResourceKey<BlockEntityType<?>> key = ResourceKey.create(Registries.BLOCK_ENTITY_TYPE, Objects.requireNonNull(id));
         BlockEntityType<T> blockEntityType = Registry.register(BuiltInRegistries.BLOCK_ENTITY_TYPE, key,
-                FabricBlockEntityTypeBuilder.<T>create(factory).addBlocks(blocks).build());
+            FabricBlockEntityTypeBuilder.<T>create(factory).addBlocks(blocks).build());
         return new IDBlockEntityType<>(blockEntityType, key);
     }
 

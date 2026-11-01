@@ -17,6 +17,6 @@ public class BlockEntityTypes {
     }
 
     public final static RegistryUtil.IDBlockEntityType<? extends FrameBlockEntity> FRAME_BLOCK_ENTITY =
-            RegistryUtil.registerBlockEntityType("frame", FrameBlockEntity::new, List.of(Blocks.FRAME_BLOCK));
+        RegistryUtil.registerBlockEntityType("frame", FrameBlockEntity::new, List.of(Blocks.FRAME_BLOCK));
 }
 

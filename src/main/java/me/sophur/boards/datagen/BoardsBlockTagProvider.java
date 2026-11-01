@@ -23,7 +23,7 @@ public class BoardsBlockTagProvider extends FabricTagsProvider.BlockTagsProvider
     @Override
     protected void addTags(HolderLookup.@NonNull Provider registries) {
         tag(BlockTags.MINEABLE_WITH_AXE)
-                .add(key(Blocks.FRAME_BLOCK));
+            .add(key(Blocks.FRAME_BLOCK));
     }
 
     private ResourceKey<Block> key(Block block) {
