@@ -1,5 +1,6 @@
 package me.sophur.boards.blockentities;
 
+import me.sophur.boards.BlockBehaviourTags;
 import me.sophur.boards.BlockEntityTypes;
 import me.sophur.boards.Util;
 import me.sophur.boards.blocks.FrameBlock;
@@ -12,10 +13,8 @@ import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.world.ContainerHelper;
-import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.ValueInput;
@@ -28,6 +27,8 @@ import java.util.List;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 
+import static me.sophur.boards.BlockBehaviourTags.hasTag;
+
 public class FrameBlockEntity extends BlockEntity {
     public FrameBlockEntity(BlockPos worldPosition, BlockState blockState) {
         super(BlockEntityTypes.FRAME_BLOCK_ENTITY.type(), worldPosition, blockState);
@@ -37,14 +38,18 @@ public class FrameBlockEntity extends BlockEntity {
     private NonNullList<ItemStack> items;
     private static final int itemCount = Direction.values().length;
 
-    public boolean canSetFaceItem(ItemStack itemStack) {
-        if (itemStack == null || itemStack.isEmpty()) return true;
-        Item item = itemStack.getItem();
-        if (!(item instanceof BlockItem blockItem)) return false;
-        Block block = blockItem.getBlock();
+    public boolean hasSolidFace(Direction direction) {
+        Item item = getFaceItem(direction).getItem();
 
-        //return state.isCollisionShapeFullBlock();
-        return true;
+        if (!hasTag(item, BlockBehaviourTags.FRAME_COMPATIBLE_TAG)) return false;
+        if (hasTag(item, BlockBehaviourTags.POWERED_TAG)) return false;
+
+        return !hasTag(item, BlockBehaviourTags.NON_CONDUCTIVE_TAG);
+    }
+
+    public boolean canSetFaceItem(ItemStack itemStack) {
+        if (itemStack.isEmpty()) return true;
+        return hasTag(itemStack.getItem(), BlockBehaviourTags.FRAME_COMPATIBLE_TAG);
     }
 
     public ItemStack getFaceItem(Direction direction) {
@@ -52,9 +57,9 @@ public class FrameBlockEntity extends BlockEntity {
     }
 
     public void setFaceItem(Direction direction, ItemStack item) {
+        if (item == null) item = ItemStack.EMPTY;
         if (!canSetFaceItem(item))
             throw new IllegalArgumentException("Cannot set this " + item + " on the face");
-        if (item == null) item = ItemStack.EMPTY;
         items.set(direction.get3DDataValue(), item);
         setChanged();
     }

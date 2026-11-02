@@ -64,6 +64,11 @@ repositories {
         forRepository { maven("https://api.modrinth.com/maven") { name = "Modrinth" } }
         filter { includeGroup("maven.modrinth") }
     }
+
+    exclusiveContent {
+        forRepository { maven("https://maven.spiritstudios.dev/releases") { name = "Spirit Studios" } }
+        filter { includeGroup("me.sophur.stairstone") }
+    }
 }
 
 dependencies {
@@ -71,6 +76,8 @@ dependencies {
 
     implementation(libs.fabric.loader)
     implementation(libs.fabric.api)
+
+    implementation(libs.stairstone)
 
     localRuntime(libs.modMenu)
     localRuntime(libs.noChatRestrictions)
@@ -87,6 +94,8 @@ val resourcesVars = mapOf(
     "fabric_loader_version" to libs.versions.fabric.loader.get(),
     "fabric_api_version" to libs.versions.fabric.api.get(),
     "minecraft_version" to libs.versions.minecraft.get(),
+
+    "stairstone_version" to libs.versions.stairstone.get(),
 )
 
 tasks.withType<ProcessResources> {

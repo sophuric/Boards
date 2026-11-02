@@ -1,0 +1,12 @@
+{
+  "values": [
+    {
+      "id": "minecraft:redstone_block",
+      "required": false
+    },
+    {
+      "id": "minecraft:target",
+      "required": false
+    }
+  ]
+}

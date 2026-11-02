@@ -5,6 +5,7 @@ import com.mojang.serialization.MapCodec;
 import me.sophur.boards.BoardsMain;
 import me.sophur.boards.Util;
 import me.sophur.boards.blockentities.FrameBlockEntity;
+import me.sophur.stairstone.api.v2.StairstoneBehaviour;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.resources.Identifier;
@@ -20,6 +21,7 @@ import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.ScheduledTickAccess;
 import net.minecraft.world.level.block.BaseEntityBlock;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.SimpleWaterloggedBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
@@ -40,9 +42,10 @@ import java.util.Map;
 
 import static net.minecraft.world.level.block.state.properties.BlockStateProperties.WATERLOGGED;
 
-public class FrameBlock extends BaseEntityBlock implements SimpleWaterloggedBlock {
+public class FrameBlock extends BaseEntityBlock implements SimpleWaterloggedBlock,
+    StairstoneBehaviour.RedstonePower, StairstoneBehaviour.RedstoneWireConnectivity {
     public FrameBlock(Properties properties) {
-        super(properties);
+        super(properties.isRedstoneConductor(Blocks::never));
 
         BlockState state = defaultBlockState();
         for (Direction dir : Direction.values()) {
@@ -181,4 +184,20 @@ public class FrameBlock extends BaseEntityBlock implements SimpleWaterloggedBloc
         return drops;
     }
 
+    private boolean isSolidFace(Direction direction, BlockGetter level, BlockPos blockPos, BlockState blockState) {
+        if (level.getBlockEntity(blockPos) instanceof FrameBlockEntity be) {
+            return be.hasSolidFace(direction);
+        }
+        return false;
+    }
+
+    @Override
+    public boolean isSolidFaceForRedstonePower(Direction direction, BlockGetter level, BlockPos blockPos, BlockState blockState) {
+        return isSolidFace(direction, level, blockPos, blockState);
+    }
+
+    @Override
+    public boolean isSolidFaceForRedstoneWireConnectivity(Direction direction, BlockGetter level, BlockPos blockPos, BlockState blockState) {
+        return isSolidFace(direction, level, blockPos, blockState);
+    }
 }

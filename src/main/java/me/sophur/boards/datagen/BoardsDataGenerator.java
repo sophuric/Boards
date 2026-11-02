@@ -10,6 +10,7 @@ public class BoardsDataGenerator implements DataGeneratorEntrypoint {
         var pack = fabricDataGenerator.createPack();
 
         pack.addProvider(BoardsBlockTagProvider::new);
+        pack.addProvider(BoardsItemTagProvider::new);
         pack.addProvider(BoardsBlockLootTableProvider::new);
         pack.addProvider(BoardsRecipeProvider::new);
     }
