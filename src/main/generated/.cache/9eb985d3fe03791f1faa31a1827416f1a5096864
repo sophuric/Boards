@@ -1,5 +1,0 @@
-// 26.3	-999999999-01-01T00:00:00	Boards/Tags for minecraft:item
-df47a3342dacca90fa6636f7be56e1e505aa7860 data/boards/tags/item/blocks.json
-ea3302b0e3734ef23361f9af33162ed31062b18c data/boards/tags/item/non_conductive.json
-a37f02e7b99549c68fdbd83f349a9261507e559b data/boards/tags/item/powered.json
-52026001fcb74236bf1954afd3181338645903cf data/boards/tags/item/signal_source.json
