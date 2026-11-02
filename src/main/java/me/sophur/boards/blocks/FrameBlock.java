@@ -182,7 +182,7 @@ public class FrameBlock extends BaseEntityBlock implements SimpleWaterloggedBloc
 
         if (params.getOptionalParameter(LootContextParams.BLOCK_ENTITY)
             instanceof FrameBlockEntity blockEntity) {
-            drops.addAll(Util.stackItems(blockEntity.streamItems()));
+            drops.addAll(Util.stackItems(blockEntity.getItems().stream()));
         }
 
         return drops;
