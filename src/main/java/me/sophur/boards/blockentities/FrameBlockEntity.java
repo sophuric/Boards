@@ -34,6 +34,7 @@ public class FrameBlockEntity extends BlockEntity {
     public FrameBlockEntity(BlockPos worldPosition, BlockState blockState) {
         super(BlockEntityTypes.FRAME_BLOCK_ENTITY.type(), worldPosition, blockState);
         this.items = NonNullList.withSize(itemCount, ItemStack.EMPTY);
+        updateBlockState();
     }
 
     private NonNullList<ItemStack> items;

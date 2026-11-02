@@ -156,8 +156,14 @@ public class FrameBlock extends BaseEntityBlock implements SimpleWaterloggedBloc
                 var itemStack = be.getFaceItem(face.direction());
                 if (itemStack.isEmpty()) continue;
                 itemStack = itemStack.copyAndClear(); // remove item from face
-                if (!player.hasInfiniteMaterials() && !level.isClientSide())
+                if (player.hasInfiniteMaterials()) {
+                    // give creative-mode player the itemStack if they don't already have it, so the player doesn't lose the item
+                    final var itemStack_ = itemStack; // java quirks
+                    if (!player.getInventory().hasAnyMatching(i -> ItemStack.matches(i, itemStack_)))
+                        player.getInventory().add(player.getInventory().getSelectedSlot(), itemStack);
+                } else if (!level.isClientSide()) {
                     Block.popResourceFromFace(level, pos, face.direction(), itemStack);
+                }
                 be.setChanged();
                 return InteractionResult.SUCCESS;
             }
