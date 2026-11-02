@@ -1,14 +1,12 @@
 package me.sophur.boards.blocks;
 
 import com.mojang.math.OctahedralGroup;
-import com.mojang.serialization.MapCodec;
-import me.sophur.boards.BoardsMain;
+import me.sophur.boards.BlockBehaviourTags;
 import me.sophur.boards.Util;
 import me.sophur.boards.blockentities.FrameBlockEntity;
 import me.sophur.stairstone.api.v2.StairstoneBehaviour;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.resources.Identifier;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -199,5 +197,19 @@ public class FrameBlock extends BaseEntityBlock implements SimpleWaterloggedBloc
     @Override
     public boolean isSolidFaceForRedstoneWireConnectivity(Direction direction, BlockGetter level, BlockPos blockPos, BlockState blockState) {
         return isSolidFace(direction, level, blockPos, blockState);
+    }
+
+    @Override
+    protected boolean shouldRedstoneWireConnectTo(@NonNull BlockState blockState, @NonNull BlockGetter level, @NonNull BlockPos blockPos, @Nullable Direction direction) {
+        if (direction == null) return false;
+        if (!(level.getBlockEntity(blockPos) instanceof FrameBlockEntity be)) return false;
+        // direction refers to the way the Redstone wire will face if this is true, not the face of our block
+        return be.faceHasTag(direction.getOpposite(), BlockBehaviourTags.SIGNAL_SOURCE);
+    }
+
+    @Override
+    protected int getSignal(@NonNull BlockState blockState, @NonNull BlockGetter level, @NonNull BlockPos blockPos, @NonNull Direction direction) {
+        if (!(level.getBlockEntity(blockPos) instanceof FrameBlockEntity be)) return 0;
+        return be.faceHasTag(direction.getOpposite(), BlockBehaviourTags.POWERED_TAG) ? 15 : 0;
     }
 }

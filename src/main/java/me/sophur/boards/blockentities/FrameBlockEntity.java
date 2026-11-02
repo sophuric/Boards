@@ -12,6 +12,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
+import net.minecraft.tags.TagKey;
 import net.minecraft.world.ContainerHelper;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -38,13 +39,26 @@ public class FrameBlockEntity extends BlockEntity {
     private NonNullList<ItemStack> items;
     private static final int itemCount = Direction.values().length;
 
+    private Item getCompatibleFaceItemType(Direction direction) {
+        ItemStack itemStack = getFaceItem(direction);
+        if (itemStack.isEmpty()) return null;
+        Item item = itemStack.getItem();
+        if (!hasTag(item, BlockBehaviourTags.FRAME_COMPATIBLE_TAG)) return null;
+        return item;
+    }
+
     public boolean hasSolidFace(Direction direction) {
-        Item item = getFaceItem(direction).getItem();
+        Item item = getCompatibleFaceItemType(direction);
+        if (item == null) return false;
 
-        if (!hasTag(item, BlockBehaviourTags.FRAME_COMPATIBLE_TAG)) return false;
         if (hasTag(item, BlockBehaviourTags.POWERED_TAG)) return false;
-
         return !hasTag(item, BlockBehaviourTags.NON_CONDUCTIVE_TAG);
+    }
+
+    public boolean faceHasTag(Direction direction, TagKey<Item> itemTag) {
+        Item item = getCompatibleFaceItemType(direction);
+        if (item == null) return false;
+        return hasTag(item, itemTag);
     }
 
     public boolean canSetFaceItem(ItemStack itemStack) {
