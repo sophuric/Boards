@@ -6,6 +6,11 @@
       }
     },
     {
+      "apply": {
+        "fabric:type": "boards:frame_boards"
+      }
+    },
+    {
       "when": {
         "north": false
       },
