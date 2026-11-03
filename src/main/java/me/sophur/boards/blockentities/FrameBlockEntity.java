@@ -1,23 +1,22 @@
 package me.sophur.boards.blockentities;
 
 import me.sophur.boards.BlockBehaviourTags;
-import me.sophur.boards.BlockEntityTypes;
-import me.sophur.boards.DirectionalMap;
-import me.sophur.boards.Util;
+import me.sophur.boards.BoardsBlockEntityTypes;
+import me.sophur.boards.util.DirectionalMap;
+import me.sophur.boards.util.Util;
 import me.sophur.boards.blocks.FrameBlock;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
-import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.ContainerHelper;
+import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
@@ -26,18 +25,11 @@ import net.minecraft.world.level.storage.ValueOutput;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.function.Consumer;
-import java.util.stream.Stream;
-
 import static me.sophur.boards.BlockBehaviourTags.hasTag;
 
 public class FrameBlockEntity extends BlockEntity {
     public FrameBlockEntity(BlockPos worldPosition, BlockState blockState) {
-        super(BlockEntityTypes.FRAME_BLOCK_ENTITY.type(), worldPosition, blockState);
+        super(BoardsBlockEntityTypes.FRAME_BLOCK_ENTITY.type(), worldPosition, blockState);
         updateBlockState();
     }
 
@@ -133,5 +125,19 @@ public class FrameBlockEntity extends BlockEntity {
 
     public DirectionalMap<ItemStack> getItems() {
         return items;
+    }
+
+    public DirectionalMap.BlockMap getBlockMap() {
+        return new DirectionalMap.BlockMap(items.map((ItemStack itemStack) -> {
+            if (itemStack.isEmpty()) return Blocks.AIR;
+            var item = itemStack.getItem();
+            if (!(item instanceof BlockItem blockItem)) return Blocks.AIR;
+            return blockItem.getBlock();
+        }, Blocks.AIR));
+    }
+
+    @Override
+    public @Nullable Object getRenderData() {
+        return getBlockMap();
     }
 }

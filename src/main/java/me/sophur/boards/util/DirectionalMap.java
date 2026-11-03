@@ -1,10 +1,12 @@
-package me.sophur.boards;
+package me.sophur.boards.util;
 
 import com.mojang.datafixers.util.Pair;
 import net.minecraft.core.Direction;
 import net.minecraft.core.NonNullList;
+import net.minecraft.world.level.block.Block;
 
 import java.util.Arrays;
+import java.util.Objects;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
@@ -17,7 +19,7 @@ public class DirectionalMap<T> {
 
     public DirectionalMap(T defaultValue) {
         this.defaultValue = defaultValue;
-        entries = NonNullList.withSize(6, defaultValue);
+        entries = NonNullList.withSize(Direction.values().length, defaultValue);
     }
 
     public DirectionalMap(DirectionalMap<T> other) {
@@ -73,5 +75,27 @@ public class DirectionalMap<T> {
 
     public T getDefaultValue() {
         return defaultValue;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == null || getClass() != o.getClass()) return false;
+        DirectionalMap<?> that = (DirectionalMap<?>) o;
+        return Objects.equals(entries, that.entries) && Objects.equals(defaultValue, that.defaultValue);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(entries, defaultValue);
+    }
+
+    public static class BlockMap extends DirectionalMap<Block> {
+        public BlockMap(Block defaultValue) {
+            super(defaultValue);
+        }
+
+        public BlockMap(DirectionalMap<Block> other) {
+            super(other);
+        }
     }
 }

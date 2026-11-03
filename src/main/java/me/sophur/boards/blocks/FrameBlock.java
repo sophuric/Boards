@@ -2,7 +2,7 @@ package me.sophur.boards.blocks;
 
 import com.mojang.math.OctahedralGroup;
 import me.sophur.boards.BlockBehaviourTags;
-import me.sophur.boards.Util;
+import me.sophur.boards.util.Util;
 import me.sophur.boards.blockentities.FrameBlockEntity;
 import me.sophur.stairstone.api.v2.StairstoneBehaviour;
 import net.minecraft.core.BlockPos;
@@ -43,7 +43,8 @@ import static net.minecraft.world.level.block.state.properties.BlockStatePropert
 public class FrameBlock extends BaseEntityBlock implements SimpleWaterloggedBlock,
     StairstoneBehaviour.RedstonePower, StairstoneBehaviour.RedstoneWireConnectivity {
     public FrameBlock(Properties properties) {
-        super(properties.isRedstoneConductor(Blocks::never));
+        properties = properties.dynamicShape().isRedstoneConductor(Blocks::never);
+        super(properties);
 
         BlockState state = defaultBlockState();
         for (Direction dir : Direction.values()) {
@@ -82,9 +83,9 @@ public class FrameBlock extends BaseEntityBlock implements SimpleWaterloggedBloc
     }
 
     private static final VoxelShape BASE_SHAPE;
-    private static final double BASE_RADIUS = 2.0 / 16.0;
+    public static final double BASE_RADIUS = 2.0 / 16.0;
     private static final Map<Direction, VoxelShape> FACE_SHAPES;
-    private static final double FACE_THICKNESS = 1.0 / 16.0;
+    public static final double FACE_THICKNESS = 1.0 / 16.0;
 
     static {
         // 3D cross shape

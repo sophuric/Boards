@@ -6,6 +6,7 @@ import net.fabricmc.fabric.api.datagen.v1.FabricPackOutput;
 import net.fabricmc.fabric.api.datagen.v1.provider.FabricTagsProvider;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Items;
@@ -43,8 +44,10 @@ public class BoardsItemTagProvider extends FabricTagsProvider.ItemTagsProvider {
         var powered = tag(BlockBehaviourTags.POWERED_TAG);
         var signalSource = tag(BlockBehaviourTags.SIGNAL_SOURCE);
 
-        BuiltInRegistries.BLOCK.stream()
-            .forEach(block -> {
+        registries.lookupOrThrow(Registries.BLOCK)
+            .listElements()
+            .forEach(holder -> {
+                Block block = holder.value();
                 Item item = block.asItem();
                 if (item == Items.AIR) return;
 

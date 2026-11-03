@@ -1,5 +1,6 @@
-package me.sophur.boards;
+package me.sophur.boards.util;
 
+import me.sophur.boards.BoardsMain;
 import net.fabricmc.fabric.api.object.builder.v1.block.entity.FabricBlockEntityTypeBuilder;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;

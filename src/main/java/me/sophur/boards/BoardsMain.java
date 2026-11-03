@@ -15,9 +15,9 @@ public final class BoardsMain implements ModInitializer {
 
     @Override
     public void onInitialize() {
-        Blocks.initialize();
-        Items.initialize();
-        BlockEntityTypes.initialize();
+        BoardsBlocks.initialize();
+        BoardsItems.initialize();
+        BoardsBlockEntityTypes.initialize();
     }
 
     public static Identifier identifier(String name) {

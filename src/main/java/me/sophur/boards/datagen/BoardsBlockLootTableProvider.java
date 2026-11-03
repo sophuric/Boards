@@ -1,6 +1,6 @@
 package me.sophur.boards.datagen;
 
-import me.sophur.boards.Blocks;
+import me.sophur.boards.BoardsBlocks;
 import net.fabricmc.fabric.api.datagen.v1.FabricPackOutput;
 import net.fabricmc.fabric.api.datagen.v1.provider.FabricBlockLootSubProvider;
 import net.minecraft.core.HolderLookup;
@@ -14,6 +14,6 @@ public class BoardsBlockLootTableProvider extends FabricBlockLootSubProvider {
 
     @Override
     public void generate() {
-        dropSelf(Blocks.FRAME_BLOCK);
+        dropSelf(BoardsBlocks.FRAME_BLOCK);
     }
 }

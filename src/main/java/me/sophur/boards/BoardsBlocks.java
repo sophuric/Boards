@@ -1,14 +1,16 @@
 package me.sophur.boards;
 
 import me.sophur.boards.blocks.FrameBlock;
+import me.sophur.boards.util.RegistryUtil;
 import net.fabricmc.fabric.api.registry.FlammableBlockRegistry;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.properties.NoteBlockInstrument;
 import net.minecraft.world.level.material.MapColor;
 
-public class Blocks {
-    private Blocks() {
+public class BoardsBlocks {
+    private BoardsBlocks() {
     }
 
     public static void initialize() {
