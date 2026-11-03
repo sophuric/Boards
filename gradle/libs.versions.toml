@@ -28,4 +28,4 @@ modMenu = { group = "maven.modrinth", name = "modmenu", version.ref = "modMenu" 
 noChatRestrictions = { group = "maven.modrinth", name = "no-chat-restrictions", version.ref = "noChatRestrictions" }
 sodium = { group = "maven.modrinth", name = "sodium", version.ref = "sodium" }
 
-stairstone = { group = "me.sophur.stairstone", name = "Stairstone", version.ref = "stairstone" }
+stairstone = { group = "me.sophur", name = "stairstone", version.ref = "stairstone" }

@@ -67,7 +67,7 @@ repositories {
 
     exclusiveContent {
         forRepository { maven("https://maven.spiritstudios.dev/releases") { name = "Spirit Studios" } }
-        filter { includeGroup("me.sophur.stairstone") }
+        filter { includeGroup("me.sophur") }
     }
 }
 
