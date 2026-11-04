@@ -1,5 +1,5 @@
 <h2 align="center">
-sophur's mod template<br/><br/>
+Boards<br/><br/>
 </h2>
 
-### An amazing description here
+### Adds a block that lets you place blocks on each face
