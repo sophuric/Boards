@@ -157,7 +157,7 @@ public class FrameBlock extends BaseEntityBlock implements SimpleWaterloggedBloc
                 if (player.hasInfiniteMaterials()) {
                     // give creative-mode player the itemStack if they don't already have it, so the player doesn't lose the item
                     final var itemStack_ = itemStack; // java quirks
-                    if (!player.getInventory().hasAnyMatching(i -> ItemStack.matches(i, itemStack_)))
+                    if (!player.getInventory().hasAnyMatching(i -> ItemStack.isSameItemSameComponents(i, itemStack_)))
                         player.getInventory().add(player.getInventory().getSelectedSlot(), itemStack);
                 } else if (!level.isClientSide()) {
                     Block.popResourceFromFace(level, pos, face.direction(), itemStack);
