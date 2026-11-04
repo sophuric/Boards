@@ -2,27 +2,22 @@ package me.sophur.boards.client.models;
 
 import com.mojang.serialization.MapCodec;
 import me.sophur.boards.blocks.FrameBlock;
+import me.sophur.boards.client.ModelUtil;
 import me.sophur.boards.util.Box;
 import me.sophur.boards.util.DirectionalMap;
 import net.fabricmc.fabric.api.client.model.loading.v1.CustomUnbakedBlockStateModel;
-import net.fabricmc.fabric.api.client.renderer.v1.mesh.MutableQuadView;
 import net.fabricmc.fabric.api.client.renderer.v1.mesh.QuadEmitter;
-import net.fabricmc.fabric.api.client.renderer.v1.model.ModelStateHelper;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.block.BlockAndTintGetter;
 import net.minecraft.client.renderer.block.dispatch.BlockStateModel;
 import net.minecraft.client.renderer.block.dispatch.BlockStateModelPart;
 import net.minecraft.client.renderer.block.dispatch.WeightedVariants;
-import net.minecraft.client.renderer.chunk.ChunkSectionLayer;
 import net.minecraft.client.resources.model.ModelBaker;
 import net.minecraft.client.resources.model.geometry.BakedQuad;
 import net.minecraft.client.resources.model.sprite.Material;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
 import net.minecraft.util.random.WeightedList;
-import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import org.joml.Vector3f;
 import org.jspecify.annotations.NonNull;
@@ -30,9 +25,9 @@ import org.jspecify.annotations.Nullable;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 import java.util.function.Predicate;
-import java.util.stream.Stream;
+
+import static me.sophur.boards.client.ModelUtil.getModel;
 
 // A lot of this is copied from Fabric renderer API test mod
 public class FrameBlockStateModel implements BlockStateModel {
@@ -68,12 +63,10 @@ public class FrameBlockStateModel implements BlockStateModel {
             var faceScale = DIRECTION_FACE_SCALE.get(ordinal);
 
             emitter.pushTransform(quad -> {
-                for (int i = 0; i < 4; ++i) {
-                    var qPos = quad.copyPos(i, null);
-                    // apply dilation transformation around the end of the direction
-                    qPos = qPos.sub(faceCenter).mul(faceScale).add(faceCenter);
-                    quad.pos(i, qPos);
-                }
+                ModelUtil.transformQuad(quad, (_, v) -> v.sub(faceCenter).mul(faceScale).add(faceCenter), true);
+                // block model has been scaled, such that it no longer touches the opposite block face
+                if (direction.getOpposite().equals(quad.cullFace()))
+                    quad.cullFace(null);
                 return true;
             });
             faceModel.emitQuads(emitter, level, pos, state, random, cullTest);
@@ -85,10 +78,6 @@ public class FrameBlockStateModel implements BlockStateModel {
     public @Nullable Object createGeometryKey(@NonNull BlockAndTintGetter level, @NonNull BlockPos pos, @NonNull BlockState state, @NonNull RandomSource random) {
         if (!(level.getBlockEntityRenderData(pos) instanceof DirectionalMap.BlockMap blockMap)) return this;
         return blockMap;
-    }
-
-    private static BlockStateModel getModel(BlockState state) {
-        return Minecraft.getInstance().getModelManager().getBlockStateModelSet().get(state);
     }
 
     @Override

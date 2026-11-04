@@ -17,10 +17,7 @@ import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.ScheduledTickAccess;
-import net.minecraft.world.level.block.BaseEntityBlock;
-import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.Blocks;
-import net.minecraft.world.level.block.SimpleWaterloggedBlock;
+import net.minecraft.world.level.block.*;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
@@ -218,5 +215,10 @@ public class FrameBlock extends BaseEntityBlock implements SimpleWaterloggedBloc
     protected int getSignal(@NonNull BlockState blockState, @NonNull BlockGetter level, @NonNull BlockPos blockPos, @NonNull Direction direction) {
         if (!(level.getBlockEntity(blockPos) instanceof FrameBlockEntity be)) return 0;
         return be.faceHasTag(direction.getOpposite(), BlockBehaviourTags.POWERED_TAG) ? 15 : 0;
+    }
+
+    @Override
+    protected @NonNull VoxelShape getOcclusionShape(@NonNull BlockState state) {
+        return Shapes.empty();
     }
 }

@@ -117,4 +117,8 @@ public class Util {
         });
         return result;
     }
+
+    public static <T> Stream<T> stream(Pair<T, T> pair) {
+        return Stream.of(pair.getFirst(), pair.getSecond());
+    }
 }
