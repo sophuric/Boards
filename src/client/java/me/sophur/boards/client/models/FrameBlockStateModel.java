@@ -5,6 +5,7 @@ import me.sophur.boards.blocks.FrameBlock;
 import me.sophur.boards.client.ModelUtil;
 import me.sophur.boards.util.Box;
 import me.sophur.boards.util.DirectionalMap;
+import me.sophur.boards.util.Util;
 import net.fabricmc.fabric.api.client.model.loading.v1.CustomUnbakedBlockStateModel;
 import net.fabricmc.fabric.api.client.renderer.v1.mesh.QuadEmitter;
 import net.minecraft.client.renderer.block.BlockAndTintGetter;
@@ -18,16 +19,23 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.util.RandomSource;
 import net.minecraft.util.random.WeightedList;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.Vec3;
 import org.joml.Vector3f;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
+import java.util.function.BiFunction;
 import java.util.function.Predicate;
 
+import static me.sophur.boards.blocks.FrameBlock.FACE_THICKNESS;
 import static me.sophur.boards.client.ModelUtil.getModel;
+import static me.sophur.boards.util.Util.magnitudeSquared;
+import static net.minecraft.core.Direction.AxisDirection.POSITIVE;
 
 // A lot of this is copied from Fabric renderer API test mod
 public class FrameBlockStateModel implements BlockStateModel {
@@ -47,7 +55,7 @@ public class FrameBlockStateModel implements BlockStateModel {
     private static final List<Vector3f> DIRECTION_FACE_SCALE =
         DIRECTION_STEPS.stream()
             .map(Vector3f::absolute)
-            .map(d -> new Vector3f(d).mul((float) FrameBlock.FACE_THICKNESS - 1))
+            .map(d -> new Vector3f(d).mul((float) FACE_THICKNESS - 1))
             .map(d -> d.add(1, 1, 1))
             // FACE_THICKNESS in the axis of the direction, 1.0 in the other two axes
             .toList();
@@ -57,15 +65,59 @@ public class FrameBlockStateModel implements BlockStateModel {
         if (!(level.getBlockEntityRenderData(pos) instanceof DirectionalMap.BlockMap blockMap)) return;
 
         blockMap.forEach((direction, block) -> {
+            if (block.equals(Blocks.AIR)) return;
+
             var faceModel = getModel(block.defaultBlockState());
             int ordinal = direction.ordinal();
             var faceCenter = DIRECTION_FACE_CENTER.get(ordinal);
             var faceScale = DIRECTION_FACE_SCALE.get(ordinal);
+            BiFunction<Integer, Vector3f, Vector3f> baseTransformation =
+                (_, v) -> v.sub(faceCenter, new Vector3f()).mul(faceScale).add(faceCenter);
 
             emitter.pushTransform(quad -> {
-                ModelUtil.transformQuad(quad, (_, v) -> v.sub(faceCenter).mul(faceScale).add(faceCenter), true);
+                var transformation = baseTransformation;
+                var cullFace = quad.cullFace();
+                var opposite = direction.getOpposite();
+                // if this is the side face
+                if (cullFace != null && !direction.equals(cullFace) && !opposite.equals(cullFace)) {
+                    if (!blockMap.get(cullFace).equals(Blocks.AIR)) {
+                        // if that face already has a block here, discard the quad so we don't get plane fighting
+                        return false;
+                    }
+                    transformation = (i, v) -> {
+                        // offset vertex so that the corner doesn't Z-fight with the other face's corner
+                        var newV = baseTransformation.apply(i, v);
+                        var vecNormal = Objects.requireNonNull(quad.copyNormal(i, null));
+                        var dirNormal = direction.getUnitVec3f();
+                        var dirSideNormal = dirNormal.cross(vecNormal, new Vector3f());
+                        var dirSide = Direction.getApproximateNearest(new Vec3(dirSideNormal));
+
+                        // figure out which side this vertex is
+                        var whichSide = Util.choose(dirSide.getAxis(), v) > 0.5 * 0.5;
+                        if (dirSide.getAxisDirection().equals(POSITIVE)) whichSide = !whichSide;
+                        if (whichSide) {
+                            dirSideNormal = Util.invert(dirSideNormal);
+                            dirSide = dirSide.getOpposite();
+                        }
+
+                        // other face is not present, so we don't need to offset
+                        if (blockMap.get(dirSide).equals(Blocks.AIR)) return newV;
+
+                        // depth = how far from direction to the opposite side that the vertex position is
+                        var depth = Util.choose(direction.getAxis(), v);
+                        if (direction.getAxisDirection().equals(POSITIVE)) depth = 1 - depth;
+
+                        // offset the vector so that the corners don't Z-fight
+                        var offset = dirSideNormal.mul(depth * -(float) FACE_THICKNESS, new Vector3f());
+
+                        return newV.add(offset);
+                    };
+                }
+
+                ModelUtil.transformQuad(quad, transformation, true);
+
                 // block model has been scaled, such that it no longer touches the opposite block face
-                if (direction.getOpposite().equals(quad.cullFace()))
+                if (opposite.equals(cullFace))
                     quad.cullFace(null);
                 return true;
             });

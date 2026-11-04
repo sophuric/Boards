@@ -13,8 +13,10 @@ import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.level.material.Fluids;
 import net.minecraft.world.phys.Vec3;
+import org.joml.*;
 import org.jspecify.annotations.NonNull;
 
+import java.lang.Math;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
@@ -120,5 +122,49 @@ public class Util {
 
     public static <T> Stream<T> stream(Pair<T, T> pair) {
         return Stream.of(pair.getFirst(), pair.getSecond());
+    }
+
+    public static float choose(Direction.Axis axis, float x, float y, float z) {
+        return switch (axis) {
+            case X -> x;
+            case Y -> y;
+            case Z -> z;
+        };
+    }
+
+    public static float choose(Direction.Axis axis, Vector3fc v) {
+        return choose(axis, v.x(), v.y(), v.z());
+    }
+
+    public static double choose(Direction.Axis axis, Vector3dc v) {
+        return axis.choose(v.x(), v.y(), v.z());
+    }
+
+    public static int choose(Direction.Axis axis, Vector3ic v) {
+        return axis.choose(v.x(), v.y(), v.z());
+    }
+
+    public static float magnitudeSquared(Vector3fc v) {
+        return (v.x() * v.x()) + (v.y() * v.y()) + (v.z() * v.z());
+    }
+
+    public static double magnitudeSquared(Vector3dc v) {
+        return (v.x() * v.x()) + (v.y() * v.y()) + (v.z() * v.z());
+    }
+
+    public static int magnitudeSquared(Vector3ic v) {
+        return (v.x() * v.x()) + (v.y() * v.y()) + (v.z() * v.z());
+    }
+
+    public static Vector3f invert(Vector3fc offset) {
+        return new Vector3f(-offset.x(), -offset.y(), -offset.z());
+    }
+
+    public static Vector3d invert(Vector3dc offset) {
+        return new Vector3d(-offset.x(), -offset.y(), -offset.z());
+    }
+
+    public static Vector3i invert(Vector3ic offset) {
+        return new Vector3i(-offset.x(), -offset.y(), -offset.z());
     }
 }
