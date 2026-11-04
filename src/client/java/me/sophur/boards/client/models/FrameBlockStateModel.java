@@ -93,9 +93,10 @@ public class FrameBlockStateModel implements BlockStateModel {
                         var dirSide = Direction.getApproximateNearest(new Vec3(dirSideNormal));
 
                         // figure out which side this vertex is
-                        var whichSide = Util.choose(dirSide.getAxis(), v) > 0.5 * 0.5;
-                        if (dirSide.getAxisDirection().equals(POSITIVE)) whichSide = !whichSide;
-                        if (whichSide) {
+                        var sidewaysPosition = Util.choose(dirSide.getAxis(), v);
+                        if (dirSide.getAxisDirection().equals(POSITIVE)) sidewaysPosition = 1 - sidewaysPosition;
+                        if (sidewaysPosition > 0.5) {
+                            sidewaysPosition = 1 - sidewaysPosition;
                             dirSideNormal = Util.invert(dirSideNormal);
                             dirSide = dirSide.getOpposite();
                         }
@@ -108,7 +109,8 @@ public class FrameBlockStateModel implements BlockStateModel {
                         if (direction.getAxisDirection().equals(POSITIVE)) depth = 1 - depth;
 
                         // offset the vector so that the corners don't Z-fight
-                        var offset = dirSideNormal.mul(depth * -(float) FACE_THICKNESS, new Vector3f());
+                        var offsetAmount = Math.max((float) FACE_THICKNESS - sidewaysPosition, 0);
+                        var offset = dirSideNormal.mul(depth * -offsetAmount, new Vector3f());
 
                         return newV.add(offset);
                     };
