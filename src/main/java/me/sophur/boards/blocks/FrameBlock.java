@@ -122,6 +122,7 @@ public class FrameBlock extends BaseEntityBlock implements SimpleWaterloggedBloc
     @Override
     protected @NonNull InteractionResult useItemOn(@NonNull ItemStack itemStack, @NonNull BlockState state, @NonNull Level level, @NonNull BlockPos pos, @NonNull Player player, @NonNull InteractionHand hand, @NonNull BlockHitResult hitResult) {
         if (itemStack.isEmpty()) return InteractionResult.TRY_WITH_EMPTY_HAND;
+        if (!player.mayBuild()) return InteractionResult.PASS;
 
         if (level.getBlockEntity(pos) instanceof FrameBlockEntity be
             && be.canSetFaceItem(itemStack)) {
@@ -146,6 +147,7 @@ public class FrameBlock extends BaseEntityBlock implements SimpleWaterloggedBloc
 
     @Override
     protected @NonNull InteractionResult useWithoutItem(@NonNull BlockState state, Level level, @NonNull BlockPos pos, @NonNull Player player, @NonNull BlockHitResult hitResult) {
+        if (!player.mayBuild()) return InteractionResult.PASS;
         if (level.getBlockEntity(pos) instanceof FrameBlockEntity be) {
             var info = getHitResultInfo(pos, hitResult);
             for (var face : info) {
