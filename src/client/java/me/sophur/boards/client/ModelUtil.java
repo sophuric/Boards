@@ -24,8 +24,8 @@ public class ModelUtil {
 
     public static @Nullable Pair<Vector2f, Vector2f> findCircleIntersections(@NotNull Vector2f centerA, float radiusA, @NotNull Vector2f centerB, float radiusB) {
         // https://stackoverflow.com/a/3349134
-        // find other point using distances to three other points
-        // essentially intersection of three circles
+        // find point using distances to two other points
+        // essentially intersection of two circles
         float distance = centerA.distance(centerB);
         float radiiDiff = Math.abs(radiusA - radiusB);
         if (distance > radiusA + radiusB) return null; // circles are too far away
@@ -65,16 +65,17 @@ public class ModelUtil {
         Vector2f[] uv = new Vector2f[VERTEX_COUNT];
         Vector3f[] normal = new Vector3f[VERTEX_COUNT];
         Vector3f[] flattenedPos = new Vector3f[VERTEX_COUNT];
-        for (int i = 0; i < VERTEX_COUNT; ++i) {
-            pos[i] = quad.copyPos(i, null);
-            if (!affectUVs) continue;
-            uv[i] = quad.copyUv(i, null);
-            normal[i] = quad.copyNormal(i, null);
-            flattenedPos[i] = flatten(pos[i], Objects.requireNonNull(normal[i]));
-        }
+        if (affectUVs)
+            for (int i = 0; i < VERTEX_COUNT; ++i) {
+                pos[i] = quad.copyPos(i, null);
+                uv[i] = quad.copyUv(i, null);
+                normal[i] = quad.copyNormal(i, null);
+                flattenedPos[i] = flatten(pos[i], Objects.requireNonNull(normal[i]));
+            }
 
         for (int i = 0; i < VERTEX_COUNT; ++i) {
-            var newPos = transformation.apply(i, new Vector3f(pos[i]));
+            var pos_ = affectUVs ? pos[i] : quad.copyPos(i, null);
+            var newPos = transformation.apply(i, new Vector3f(pos_));
             quad.pos(i, newPos);
             if (!affectUVs) continue;
 
