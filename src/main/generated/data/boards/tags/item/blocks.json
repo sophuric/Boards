@@ -417,6 +417,10 @@
       "required": false
     },
     {
+      "id": "minecraft:barrier",
+      "required": false
+    },
+    {
       "id": "minecraft:prismarine",
       "required": false
     },

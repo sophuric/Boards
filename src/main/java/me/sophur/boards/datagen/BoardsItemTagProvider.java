@@ -32,7 +32,8 @@ public class BoardsItemTagProvider extends FabricTagsProvider.ItemTagsProvider {
         NetherrackBlock.class,
         StainedGlassBlock.class,
         PoweredBlock.class,
-        TargetBlock.class
+        TargetBlock.class,
+        BarrierBlock.class
     );
 
     @Override
