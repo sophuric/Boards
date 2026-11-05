@@ -1,6 +1,7 @@
 package me.sophur.boards.client.models;
 
 import com.mojang.serialization.MapCodec;
+import me.sophur.boards.BoardsBlocks;
 import me.sophur.boards.blocks.FrameBlock;
 import me.sophur.boards.client.ModelUtil;
 import me.sophur.boards.util.Box;
@@ -19,6 +20,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.util.RandomSource;
 import net.minecraft.util.random.WeightedList;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
@@ -33,8 +35,6 @@ import java.util.function.BiFunction;
 import java.util.function.Predicate;
 
 import static me.sophur.boards.blocks.FrameBlock.FACE_THICKNESS;
-import static me.sophur.boards.client.ModelUtil.getModel;
-import static me.sophur.boards.util.Util.magnitudeSquared;
 import static net.minecraft.core.Direction.AxisDirection.POSITIVE;
 
 // A lot of this is copied from Fabric renderer API test mod
@@ -60,14 +60,22 @@ public class FrameBlockStateModel implements BlockStateModel {
             // FACE_THICKNESS in the axis of the direction, 1.0 in the other two axes
             .toList();
 
+    private static BlockStateModel getModel(Block block) {
+        if (block == null || block.equals(Blocks.AIR)) return null;
+        // prevent stack overflow
+        if (block.equals(BoardsBlocks.FRAME_BLOCK)) return null;
+        var model = ModelUtil.getModel(block.defaultBlockState());
+        if (model instanceof FrameBlockStateModel) return null;
+        return model;
+    }
+
     @Override
     public void emitQuads(@NonNull QuadEmitter emitter, @NonNull BlockAndTintGetter level, @NonNull BlockPos pos, @NonNull BlockState state, @NonNull RandomSource random, @NonNull Predicate<@Nullable Direction> cullTest) {
         if (!(level.getBlockEntityRenderData(pos) instanceof DirectionalMap.BlockMap blockMap)) return;
 
         blockMap.forEach((direction, block) -> {
-            if (block.equals(Blocks.AIR)) return;
-
-            var faceModel = getModel(block.defaultBlockState());
+            var faceModel = getModel(block);
+            if (faceModel == null) return;
             int ordinal = direction.ordinal();
             var faceCenter = DIRECTION_FACE_CENTER.get(ordinal);
             var faceScale = DIRECTION_FACE_SCALE.get(ordinal);
@@ -75,6 +83,7 @@ public class FrameBlockStateModel implements BlockStateModel {
                 (_, v) -> v.sub(faceCenter, new Vector3f()).mul(faceScale).add(faceCenter);
 
             var opposite = direction.getOpposite();
+            var dirNormal = direction.getUnitVec3f();
 
             emitter.pushTransform(quad -> {
                 var transformation = baseTransformation;
@@ -89,7 +98,6 @@ public class FrameBlockStateModel implements BlockStateModel {
                         // offset vertex so that the corner doesn't Z-fight with the other face's corner
                         var newV = baseTransformation.apply(i, v);
                         var vecNormal = Objects.requireNonNull(quad.copyNormal(i, null));
-                        var dirNormal = direction.getUnitVec3f();
                         var dirSideNormal = dirNormal.cross(vecNormal, new Vector3f());
                         var dirSide = Direction.getApproximateNearest(new Vec3(dirSideNormal));
 
@@ -144,8 +152,9 @@ public class FrameBlockStateModel implements BlockStateModel {
         WeightedList.Builder<BlockStateModel> list = WeightedList.builder();
         if (level.getBlockEntityRenderData(pos) instanceof DirectionalMap.BlockMap blockMap) {
             blockMap.forEach(faceBlock -> {
-                BlockState faceState = faceBlock.defaultBlockState();
-                list.add(getModel(faceState));
+                var faceModel = getModel(faceBlock);
+                if (faceModel == null) return;
+                list.add(faceModel);
             });
         }
         return new WeightedVariants(list.build()).particleMaterial();
@@ -158,7 +167,8 @@ public class FrameBlockStateModel implements BlockStateModel {
         Box.Integer flags = new Box.Integer(0);
 
         blockMap.forEach(faceBlock -> {
-            var model = getModel(faceBlock.defaultBlockState());
+            var model = getModel(faceBlock);
+            if (model == null) return;
             int modelFlags = model.materialFlags(level, pos, state, random);
             // bitwise OR all the flags together
             flags.set(flags.get() | modelFlags);
