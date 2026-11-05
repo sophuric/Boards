@@ -74,10 +74,11 @@ public class FrameBlockStateModel implements BlockStateModel {
             BiFunction<Integer, Vector3f, Vector3f> baseTransformation =
                 (_, v) -> v.sub(faceCenter, new Vector3f()).mul(faceScale).add(faceCenter);
 
+            var opposite = direction.getOpposite();
+
             emitter.pushTransform(quad -> {
                 var transformation = baseTransformation;
                 var cullFace = quad.cullFace();
-                var opposite = direction.getOpposite();
                 // if this is the side face
                 if (cullFace != null && !direction.equals(cullFace) && !opposite.equals(cullFace)) {
                     if (!blockMap.get(cullFace).equals(Blocks.AIR)) {
@@ -123,7 +124,11 @@ public class FrameBlockStateModel implements BlockStateModel {
                     quad.cullFace(null);
                 return true;
             });
-            faceModel.emitQuads(emitter, level, pos, state, random, cullTest);
+            Predicate<@Nullable Direction> newCullTest = face -> {
+                if (opposite.equals(face)) return false;
+                return cullTest.test(face);
+            };
+            faceModel.emitQuads(emitter, level, pos, state, random, newCullTest);
             emitter.popTransform();
         });
     }
