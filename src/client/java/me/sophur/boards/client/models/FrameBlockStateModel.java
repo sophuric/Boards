@@ -31,10 +31,13 @@ import org.jspecify.annotations.Nullable;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.Predicate;
 
 import static me.sophur.boards.blocks.FrameBlock.FACE_THICKNESS;
+import static me.sophur.boards.util.Util.cycleEnum;
+import static net.minecraft.core.Direction.AxisDirection.NEGATIVE;
 import static net.minecraft.core.Direction.AxisDirection.POSITIVE;
 
 // A lot of this is copied from Fabric renderer API test mod
@@ -70,8 +73,10 @@ public class FrameBlockStateModel implements BlockStateModel {
     }
 
     @Override
-    public void emitQuads(@NonNull QuadEmitter emitter, @NonNull BlockAndTintGetter level, @NonNull BlockPos pos, @NonNull BlockState state, @NonNull RandomSource random, @NonNull Predicate<@Nullable Direction> cullTest) {
-        if (!(level.getBlockEntityRenderData(pos) instanceof DirectionalMap.BlockMap blockMap)) return;
+    public void emitQuads(@NonNull QuadEmitter emitter, @NonNull BlockAndTintGetter level, @NonNull BlockPos blockPos, @NonNull BlockState state, @NonNull RandomSource random, @NonNull Predicate<@Nullable Direction> cullTest) {
+        if (!(level.getBlockEntityRenderData(blockPos) instanceof DirectionalMap.BlockMap blockMap)) return;
+
+        Predicate<Direction> hasFace = direction -> getModel(blockMap.get(direction)) != null;
 
         blockMap.forEach((direction, block) -> {
             var faceModel = getModel(block);
@@ -79,64 +84,62 @@ public class FrameBlockStateModel implements BlockStateModel {
             int ordinal = direction.ordinal();
             var faceCenter = DIRECTION_FACE_CENTER.get(ordinal);
             var faceScale = DIRECTION_FACE_SCALE.get(ordinal);
-            BiFunction<Integer, Vector3f, Vector3f> baseTransformation =
-                (_, v) -> v.sub(faceCenter, new Vector3f()).mul(faceScale).add(faceCenter);
 
             var opposite = direction.getOpposite();
-            var dirNormal = direction.getUnitVec3f();
+            var directionAxis = direction.getAxis();
 
             emitter.pushTransform(quad -> {
-                var transformation = baseTransformation;
                 var cullFace = quad.cullFace();
-                // if this is the side face
+                // if this is a side face
                 if (cullFace != null && !direction.equals(cullFace) && !opposite.equals(cullFace)) {
-                    if (!blockMap.get(cullFace).equals(Blocks.AIR)) {
-                        // if that face already has a block here, discard the quad so we don't get plane fighting
+                    if (faceModel.equals(getModel(blockMap.get(cullFace)))) {
+                        // if the other face is the same block, don't draw the diagonal quad between the faces
+                        // this mimics the vanilla behaviour of how glass blocks of the same colour don't render between faces
                         return false;
                     }
-                    transformation = (i, v) -> {
-                        // offset vertex so that the corner doesn't Z-fight with the other face's corner
-                        var newV = baseTransformation.apply(i, v);
-                        var vecNormal = Objects.requireNonNull(quad.copyNormal(i, null));
-                        var dirSideNormal = dirNormal.cross(vecNormal, new Vector3f());
-                        var dirSide = Direction.getApproximateNearest(new Vec3(dirSideNormal));
-
-                        // figure out which side this vertex is
-                        var sidewaysPosition = Util.choose(dirSide.getAxis(), v);
-                        if (dirSide.getAxisDirection().equals(POSITIVE)) sidewaysPosition = 1 - sidewaysPosition;
-                        if (sidewaysPosition > 0.5) {
-                            sidewaysPosition = 1 - sidewaysPosition;
-                            dirSideNormal = Util.invert(dirSideNormal);
-                            dirSide = dirSide.getOpposite();
-                        }
-
-                        // other face is not present, so we don't need to offset
-                        if (blockMap.get(dirSide).equals(Blocks.AIR)) return newV;
-
-                        // depth = how far from direction to the opposite side that the vertex position is
-                        var depth = Util.choose(direction.getAxis(), v);
-                        if (direction.getAxisDirection().equals(POSITIVE)) depth = 1 - depth;
-
-                        // offset the vector so that the corners don't Z-fight
-                        var offsetAmount = Math.max((float) FACE_THICKNESS - sidewaysPosition, 0);
-                        var offset = dirSideNormal.mul(depth * -offsetAmount, new Vector3f());
-
-                        return newV.add(offset);
-                    };
                 }
+                BiFunction<Integer, Vector3f, Vector3f> transformation = (i, pos) -> {
+                    // scale pos towards the face direction
+                    var scaledPos = pos.sub(faceCenter, new Vector3f()).mul(faceScale).add(faceCenter);
+
+                    var depth = Util.choose(directionAxis, pos);
+                    if (direction.getAxisDirection().equals(POSITIVE)) depth = 1 - depth;
+                    final var depth_ = depth;
+
+                    BiConsumer<Direction.Axis, Vector3f> offsetFromSides = (sideAxis, posToOffset) -> {
+                        var sidewaysValue = Util.choose(sideAxis, posToOffset);
+                        var sideAxisDirection = sidewaysValue > 0.5 ? POSITIVE : NEGATIVE;
+                        if (sideAxisDirection == POSITIVE) sidewaysValue = 1 - sidewaysValue;
+                        var sideDirection = Direction.fromAxisAndDirection(sideAxis, sideAxisDirection);
+
+                        // only offset if there is a face here
+                        if (!hasFace.test(sideDirection)) return;
+
+                        var offsetAmount = Math.max((float) FACE_THICKNESS - sidewaysValue, 0) * depth_;
+                        var offsetVec = sideDirection.getUnitVec3f().mul(offsetAmount, new Vector3f());
+                        posToOffset.sub(offsetVec); // subtract, because we want to offset inwards
+                    };
+
+                    // offset from the two other sides
+                    offsetFromSides.accept(cycleEnum(directionAxis, 1), scaledPos);
+                    offsetFromSides.accept(cycleEnum(directionAxis, 2), scaledPos);
+
+                    return scaledPos;
+                };
 
                 ModelUtil.transformQuad(quad, transformation, true);
 
-                // block model has been scaled, such that it no longer touches the opposite block face
-                if (opposite.equals(cullFace))
+                // don't cull faces that have been moved
+                if (cullFace != null && (opposite.equals(cullFace) || hasFace.test(cullFace)))
                     quad.cullFace(null);
                 return true;
             });
-            Predicate<@Nullable Direction> newCullTest = face -> {
-                if (opposite.equals(face)) return false;
-                return cullTest.test(face);
+            Predicate<@Nullable Direction> newCullTest = cullFace -> {
+                if (cullFace != null && (opposite.equals(cullFace) || hasFace.test(cullFace)))
+                    return false;
+                return cullTest.test(cullFace);
             };
-            faceModel.emitQuads(emitter, level, pos, state, random, newCullTest);
+            faceModel.emitQuads(emitter, level, blockPos, state, random, newCullTest);
             emitter.popTransform();
         });
     }

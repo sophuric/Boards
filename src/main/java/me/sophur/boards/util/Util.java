@@ -1,6 +1,7 @@
 package me.sophur.boards.util;
 
 import com.mojang.datafixers.util.Pair;
+import com.mojang.math.Axis;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.item.ItemStack;
@@ -166,5 +167,13 @@ public class Util {
 
     public static Vector3i invert(Vector3ic offset) {
         return new Vector3i(-offset.x(), -offset.y(), -offset.z());
+    }
+
+    public static <T extends Enum<T>> T cycleEnum(T enumValue, T[] values, int cycleBy) {
+        return values[(enumValue.ordinal() + cycleBy) % values.length];
+    }
+
+    public static Direction.Axis cycleEnum(Direction.Axis value, int cycleBy) {
+        return cycleEnum(value, Direction.Axis.values(), cycleBy);
     }
 }
