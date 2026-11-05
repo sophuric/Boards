@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "key": {
+    "s": "minecraft:stick"
+  },
+  "pattern": [
+    " s ",
+    "sss",
+    " s "
+  ],
+  "result": {
+    "count": 4,
+    "id": "boards:frame"
+  }
+}
