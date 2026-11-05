@@ -15,7 +15,6 @@ import org.joml.Vector3fc;
 import java.util.Comparator;
 import java.util.Objects;
 import java.util.function.BiFunction;
-import java.util.stream.Stream;
 
 import static me.sophur.boards.util.Util.stream;
 
@@ -24,8 +23,6 @@ public class ModelUtil {
 
     public static @Nullable Pair<Vector2f, Vector2f> findCircleIntersections(@NotNull Vector2f centerA, float radiusA, @NotNull Vector2f centerB, float radiusB) {
         // https://stackoverflow.com/a/3349134
-        // find point using distances to two other points
-        // essentially intersection of two circles
         float distance = centerA.distance(centerB);
         float radiiDiff = Math.abs(radiusA - radiusB);
         if (distance > radiusA + radiusB) return null; // circles are too far away
@@ -80,26 +77,34 @@ public class ModelUtil {
             if (!affectUVs) continue;
 
             Vector2f[] uvs = new Vector2f[3];
-            float[] distanceUVs = new float[3];
+            float[] distanceNewUVs = new float[3];
+            // loop over the other three points
             for (int j = 0, k = 0; j < VERTEX_COUNT; ++j) {
                 if (j == i) continue;
-                // find distance to other points
+                // find distance from this point to the other points
                 float distancePos = flattenedPos[j].distance(flattenedPos[i]),
                     distanceNewPos = flattenedPos[j].distance(flatten(newPos, normal[i])),
+                    // distance in UV coordinates
                     distanceUV = uv[j].distance(uv[i]),
+                    // essentially we find the factor by which the distances between this
+                    // vector and each of the other three vectors are scaled by
+                    // then multiply the distances in UV coordinate by that factor
                     distanceNewUV = distanceNewPos / distancePos * distanceUV;
                 uvs[k] = uv[j];
-                distanceUVs[k++] = distanceNewUV;
+                distanceNewUVs[k++] = distanceNewUV;
             }
 
-            var intersections = findCircleIntersections(uvs[0], distanceUVs[0], uvs[1], distanceUVs[1]);
-            if (intersections == null) {
-                return false;
-            }
+            // after we find the new UV distances, we find the new UV position from the new distances
+            // we have two positions and two distances (radii) from a certain point, we need to find that point
+            // this is essentially finding the intersection of a circle
+            var intersections = findCircleIntersections(uvs[0], distanceNewUVs[0], uvs[1], distanceNewUVs[1]);
+            if (intersections == null) return false;
+            // we have another position and another radius, so we can use this to find which solution is correct
             // find which one is closest to the third circle
             var intersection = stream(intersections).min(Comparator.comparing(
-                v -> Math.abs(uvs[2].distance(v) - distanceUVs[2])
+                v -> Math.abs(uvs[2].distance(v) - distanceNewUVs[2])
             )).orElseThrow();
+            // new UV position
             quad.uv(i, intersection);
         }
 
