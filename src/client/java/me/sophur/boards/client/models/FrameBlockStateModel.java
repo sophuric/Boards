@@ -98,7 +98,7 @@ public class FrameBlockStateModel implements BlockStateModel {
                         return false;
                     }
                 }
-                BiFunction<Integer, Vector3f, Vector3f> transformation = (i, pos) -> {
+                BiFunction<Integer, Vector3f, Vector3f> transformation = (_, pos) -> {
                     // scale pos towards the face direction
                     var scaledPos = pos.sub(faceCenter, new Vector3f()).mul(faceScale).add(faceCenter);
 

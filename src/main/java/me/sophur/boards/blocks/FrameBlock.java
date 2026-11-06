@@ -5,6 +5,7 @@ import me.sophur.boards.BlockBehaviourTags;
 import me.sophur.boards.util.Util;
 import me.sophur.boards.blockentities.FrameBlockEntity;
 import me.sophur.stairstone.api.v2.StairstoneBehaviour;
+import net.fabricmc.fabric.api.event.player.PlayerPickItemEvents;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.util.RandomSource;
@@ -145,30 +146,47 @@ public class FrameBlock extends BaseEntityBlock implements SimpleWaterloggedBloc
         return InteractionResult.PASS;
     }
 
-    @Override
-    protected @NonNull InteractionResult useWithoutItem(@NonNull BlockState state, Level level, @NonNull BlockPos pos, @NonNull Player player, @NonNull BlockHitResult hitResult) {
-        if (!player.mayBuild()) return InteractionResult.PASS;
-        if (level.getBlockEntity(pos) instanceof FrameBlockEntity be) {
-            var info = getHitResultInfo(pos, hitResult);
-            for (var face : info) {
-                if (info.get(1).absValue() <= BASE_RADIUS && info.get(0).direction() != face.direction()) continue;
+    private static Direction getExistingFace(FrameBlockEntity blockEntity, BlockPos pos, BlockHitResult hitResult, boolean onlyDetectEdgeFace) {
+        var info = getHitResultInfo(pos, hitResult);
+        for (int i = 0; i < info.size(); i++) {
+            var face = info.get(i);
 
-                var itemStack = be.getFaceItem(face.direction());
-                if (itemStack.isEmpty()) continue;
-                itemStack = itemStack.copyAndClear(); // remove item from face
-                if (player.hasInfiniteMaterials()) {
-                    // give creative-mode player the itemStack if they don't already have it, so the player doesn't lose the item
-                    final var itemStack_ = itemStack; // java quirks
-                    if (!player.getInventory().hasAnyMatching(i -> ItemStack.isSameItemSameComponents(i, itemStack_)))
-                        player.getInventory().add(player.getInventory().getSelectedSlot(), itemStack);
-                } else if (!level.isClientSide()) {
-                    Block.popResourceFromFace(level, pos, face.direction(), itemStack);
-                }
-                be.setChanged();
-                return InteractionResult.SUCCESS;
-            }
+            if (onlyDetectEdgeFace && face.absValue() < 0.5 - FACE_THICKNESS) break;
+
+            // don't fall back to other faces unless we click on the edge faces
+            if (i > 0 && face.absValue() <= BASE_RADIUS) break;
+
+            var itemStack = blockEntity.getFaceItem(face.direction());
+            if (itemStack.isEmpty()) continue;
+
+            return face.direction();
         }
-        return InteractionResult.PASS;
+        return null;
+    }
+
+    @Override
+    protected @NonNull InteractionResult useWithoutItem(@NonNull BlockState state, @NonNull Level level, @NonNull BlockPos pos, @NonNull Player player, @NonNull BlockHitResult hitResult) {
+        if (!player.mayBuild()) return InteractionResult.PASS;
+        if (!(level.getBlockEntity(pos) instanceof FrameBlockEntity be)) return InteractionResult.PASS;
+
+        var direction = getExistingFace(be, pos, hitResult, false);
+        if (direction == null) return InteractionResult.PASS;
+        var itemStack = be.getFaceItem(direction);
+        if (itemStack.isEmpty()) return InteractionResult.PASS;
+
+        itemStack = itemStack.copyAndClear(); // remove item from face
+        if (player.hasInfiniteMaterials()) {
+            // give creative-mode player the itemStack if they don't already have it, so the player doesn't lose the item
+            final var itemStack_ = itemStack; // java quirks
+            var inventory = player.getInventory();
+            if (!inventory.hasAnyMatching(i -> ItemStack.isSameItemSameComponents(i, itemStack_))) {
+                inventory.add(player.getInventory().getSelectedSlot(), itemStack);
+            }
+        } else if (!level.isClientSide()) {
+            Block.popResourceFromFace(level, pos, direction, itemStack);
+        }
+        be.setChanged();
+        return InteractionResult.SUCCESS;
     }
 
     @Override
@@ -222,5 +240,24 @@ public class FrameBlock extends BaseEntityBlock implements SimpleWaterloggedBloc
     @Override
     protected @NonNull VoxelShape getOcclusionShape(@NonNull BlockState state) {
         return Shapes.empty();
+    }
+
+    static {
+        PlayerPickItemEvents.BLOCK.register(((player, pos, state, requestIncludeData) -> {
+            if (!(state.getBlock() instanceof FrameBlock block)) return null;
+
+            // find block the player is looking at (range with buffer of 1 block)
+            var hitResult = player.pick(player.blockInteractionRange() + 1, 0, false);
+            if (!(hitResult instanceof BlockHitResult blockHitResult)) return null;
+            if (!pos.equals(blockHitResult.getBlockPos())) return null;
+
+            @SuppressWarnings("resource") var level = player.level();
+            if (!(level.getBlockEntity(pos) instanceof FrameBlockEntity blockEntity)) return null;
+
+            var face = getExistingFace(blockEntity, pos, blockHitResult, true);
+            if (face == null) return null;
+
+            return blockEntity.getFaceItem(face);
+        }));
     }
 }
