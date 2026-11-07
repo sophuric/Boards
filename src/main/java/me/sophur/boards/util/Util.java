@@ -1,7 +1,6 @@
 package me.sophur.boards.util;
 
 import com.mojang.datafixers.util.Pair;
-import com.mojang.math.Axis;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.item.ItemStack;
@@ -143,30 +142,6 @@ public class Util {
 
     public static int choose(Direction.Axis axis, Vector3ic v) {
         return axis.choose(v.x(), v.y(), v.z());
-    }
-
-    public static float magnitudeSquared(Vector3fc v) {
-        return (v.x() * v.x()) + (v.y() * v.y()) + (v.z() * v.z());
-    }
-
-    public static double magnitudeSquared(Vector3dc v) {
-        return (v.x() * v.x()) + (v.y() * v.y()) + (v.z() * v.z());
-    }
-
-    public static int magnitudeSquared(Vector3ic v) {
-        return (v.x() * v.x()) + (v.y() * v.y()) + (v.z() * v.z());
-    }
-
-    public static Vector3f invert(Vector3fc offset) {
-        return new Vector3f(-offset.x(), -offset.y(), -offset.z());
-    }
-
-    public static Vector3d invert(Vector3dc offset) {
-        return new Vector3d(-offset.x(), -offset.y(), -offset.z());
-    }
-
-    public static Vector3i invert(Vector3ic offset) {
-        return new Vector3i(-offset.x(), -offset.y(), -offset.z());
     }
 
     public static <T extends Enum<T>> T cycleEnum(T enumValue, T[] values, int cycleBy) {

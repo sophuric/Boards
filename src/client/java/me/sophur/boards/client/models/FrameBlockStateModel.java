@@ -2,7 +2,6 @@ package me.sophur.boards.client.models;
 
 import com.mojang.serialization.MapCodec;
 import me.sophur.boards.BoardsBlocks;
-import me.sophur.boards.blocks.FrameBlock;
 import me.sophur.boards.client.ModelUtil;
 import me.sophur.boards.util.Box;
 import me.sophur.boards.util.DirectionalMap;
@@ -23,14 +22,12 @@ import net.minecraft.util.random.WeightedList;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.phys.Vec3;
 import org.joml.Vector3f;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.Objects;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.Predicate;

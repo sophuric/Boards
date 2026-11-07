@@ -3,7 +3,6 @@ package me.sophur.boards.client;
 import me.sophur.boards.client.models.FrameBlockStateModel;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.model.loading.v1.CustomUnbakedBlockStateModel;
-import net.fabricmc.fabric.api.client.model.loading.v1.ModelLoadingPlugin;
 
 import static me.sophur.boards.BoardsMain.identifier;
 
